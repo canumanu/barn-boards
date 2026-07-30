@@ -11,11 +11,12 @@
   .title { color: #93c5fd; font-size: 32px; letter-spacing: 4px; }
   .updated { color: #9ca3af; font-size: 18px; }
   .col-headers, .row { display: grid;
-    grid-template-columns: 130px 1.3fr 1fr 1fr 90px 220px; gap: 16px; align-items: center; }
+    grid-template-columns: 130px 1.3fr 1fr 1fr 1.1fr 90px 220px; gap: 16px; align-items: center; }
   .col-headers { color: #6b7280; font-size: 16px; letter-spacing: 2px; padding: 8px 12px; }
   .row { padding: 16px 12px; border-top: 1px solid #222; font-size: 22px; }
   .horse { color: #fff; letter-spacing: 1px; }
   .place { color: #d1d5db; }
+  .driver { color: #9ca3af; font-size: 18px; }
   .stall { color: #e5e7eb; }
   .status { background: #1a1a1a; border: 1px solid #333; padding: 8px 14px;
             border-radius: 6px; color: #93c5fd; font-size: 20px; text-align: center; }
@@ -29,7 +30,7 @@
     <div class="updated" id="updated">loading…</div>
   </div>
   <div class="col-headers">
-    <div>DATE</div><div>HORSE</div><div>FROM</div><div>DESTINATION</div><div>STALL</div><div>STATUS</div>
+    <div>DATE</div><div>HORSE</div><div>FROM</div><div>DESTINATION</div><div>DRIVER</div><div>STALL</div><div>STATUS</div>
   </div>
   <div id="rows"><div class="empty">Loading arrivals…</div></div>
 </div>
@@ -37,7 +38,7 @@
 <script>
 // ---- CONFIGURE THIS ----
 // Paste the shared/public URL of arrivals.json produced by your Power Automate flow.
-const DATA_URL = "https://raw.githubusercontent.com/canumanu/barn-boards/main/arrivals.json";
+const DATA_URL = "PASTE_YOUR_ARRIVALS_JSON_URL_HERE";
 const REFRESH_SECONDS = 60;
 // -------------------------
 
@@ -53,6 +54,7 @@ function render(rows) {
       <div class="horse">${(r.horse || '').toUpperCase()}</div>
       <div class="place">${r.from || ''}</div>
       <div class="place">${r.to || ''}</div>
+      <div class="driver">${r.driver || ''}</div>
       <div class="stall">${r.stall || ''}</div>
       <div><span class="status">ARRIVING TODAY</span></div>
     </div>`).join('');
