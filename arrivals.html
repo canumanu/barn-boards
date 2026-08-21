@@ -22,6 +22,9 @@
   .status { background: #1a1a1a; border: 1px solid #333; padding: 8px 14px;
             border-radius: 6px; color: #93c5fd; font-size: 20px; text-align: center; }
   .empty { color: #6b7280; font-size: 20px; padding: 2rem 12px; text-align: center; }
+  .page-dots { display: flex; justify-content: center; gap: 10px; margin-top: 1.5rem; }
+  .page-dot { width: 12px; height: 12px; border-radius: 50%; background: #333; transition: background 0.3s ease; }
+  .page-dot.active { background: #93c5fd; }
 </style>
 </head>
 <body>
@@ -34,6 +37,7 @@
     <div>DATE</div><div>HORSE</div><div>FROM</div><div>DESTINATION</div><div>DRIVER</div><div>STALL</div><div>STATUS</div>
   </div>
   <div id="rows"><div class="empty">Loading arrivals…</div></div>
+  <div class="page-dots" id="pageDots"></div>
 </div>
 
 <script>
@@ -41,14 +45,30 @@
 // Paste the shared/public URL of arrivals.json produced by your Power Automate flow.
 const DATA_URL = "https://raw.githubusercontent.com/canumanu/barn-boards/main/arrivals.json";
 const REFRESH_SECONDS = 60;
+const ROWS_PER_PAGE = 10;
+const PAGE_SECONDS = 10;
 // -------------------------
 
-function render(rows) {
+let allRows = [];
+let currentPage = 0;
+let pageTimer = null;
+
+function renderPage() {
   const container = document.getElementById('rows');
-  if (!rows || rows.length === 0) {
+  const dotsEl = document.getElementById('pageDots');
+
+  if (!allRows || allRows.length === 0) {
     container.innerHTML = '<div class="empty">No arrivals today.</div>';
+    dotsEl.innerHTML = '';
     return;
   }
+
+  const pageCount = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
+  if (currentPage >= pageCount) currentPage = 0;
+
+  const start = currentPage * ROWS_PER_PAGE;
+  const rows = allRows.slice(start, start + ROWS_PER_PAGE);
+
   container.innerHTML = rows.map(r => `
     <div class="row">
       <div class="date">${r.date || ''}</div>
@@ -59,13 +79,31 @@ function render(rows) {
       <div class="stall">${r.stall || ''}</div>
       <div><span class="status">ARRIVING TODAY</span></div>
     </div>`).join('');
+
+  if (pageCount > 1) {
+    dotsEl.innerHTML = Array.from({ length: pageCount }).map((_, i) =>
+      `<div class="page-dot${i === currentPage ? ' active' : ''}"></div>`).join('');
+  } else {
+    dotsEl.innerHTML = '';
+  }
+}
+
+function startPageRotation() {
+  if (pageTimer) clearInterval(pageTimer);
+  pageTimer = setInterval(() => {
+    const pageCount = Math.max(1, Math.ceil(allRows.length / ROWS_PER_PAGE));
+    if (pageCount <= 1) return;
+    currentPage = (currentPage + 1) % pageCount;
+    renderPage();
+  }, PAGE_SECONDS * 1000);
 }
 
 async function refresh() {
   try {
     const res = await fetch(DATA_URL, { cache: 'no-store' });
     const data = await res.json();
-    render(data);
+    allRows = data || [];
+    renderPage();
     document.getElementById('updated').textContent =
       'updated ' + new Date().toLocaleTimeString();
   } catch (err) {
@@ -75,6 +113,7 @@ async function refresh() {
 }
 
 refresh();
+startPageRotation();
 setInterval(refresh, REFRESH_SECONDS * 1000);
 </script>
 </body>
