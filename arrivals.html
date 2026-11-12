@@ -47,6 +47,7 @@ const DATA_URL = "https://raw.githubusercontent.com/canumanu/barn-boards/main/ar
 const REFRESH_SECONDS = 60;
 const ROWS_PER_PAGE = 8;
 const PAGE_SECONDS = 10;
+const RELOAD_MINUTES = 60; // reload the page itself so code updates reach the screen without anyone touching it
 // -------------------------
 
 let allRows = [];
@@ -115,6 +116,12 @@ async function refresh() {
 refresh();
 startPageRotation();
 setInterval(refresh, REFRESH_SECONDS * 1000);
+
+// Hourly full reload, with a throwaway tag in the address so the browser
+// can't hand back an old cached copy of the page.
+setTimeout(() => {
+  location.replace(location.pathname + '?r=' + Date.now());
+}, RELOAD_MINUTES * 60 * 1000);
 </script>
 </body>
 </html>
